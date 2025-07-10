@@ -223,12 +223,6 @@ class S3_Master_File_Manager {
             } else {
                 // Manual client method
                 $result = $s3_client->put_object($bucket_name, $key, $file_content);
-                
-                // Ensure consistent structure
-                if (isset($result['success']) && $result['success']) {
-                    $result['key'] = $key;
-                }
-                
                 return $result;
             }
             
@@ -428,56 +422,27 @@ class S3_Master_File_Manager {
      */
     public function get_file_url($bucket_name, $key, $expires = 3600) {
         if (empty($bucket_name) || empty($key)) {
-            return array(
-                'success' => false,
-                'message' => __('Bucket name and file key are required', 's3-master')
-            );
+            return false;
         }
         
         $s3_client = $this->aws_client->get_s3_client();
         
         if (!$s3_client) {
-            return array(
-                'success' => false,
-                'message' => __('S3 client not available', 's3-master')
-            );
+            return false;
         }
         
         try {
-            $url = '';
-            
             if (method_exists($s3_client, 'getObjectUrl')) {
-                // AWS SDK method - create presigned URL
-                $url = $s3_client->getObjectUrl($bucket_name, $key, "+{$expires} seconds");
-            } elseif (method_exists($s3_client, 'createPresignedRequest')) {
-                // Alternative AWS SDK method
-                $cmd = $s3_client->getCommand('GetObject', [
-                    'Bucket' => $bucket_name,
-                    'Key' => $key
-                ]);
-                $request = $s3_client->createPresignedRequest($cmd, "+{$expires} seconds");
-                $url = (string) $request->getUri();
+                // AWS SDK method
+                return $s3_client->getObjectUrl($bucket_name, $key, "+{$expires} seconds");
             } else {
                 // Manual client method - return direct URL (not signed)
-                $region = $this->aws_client->get_region();
-                if ($region && $region !== 'us-east-1') {
-                    $url = "https://s3-{$region}.amazonaws.com/{$bucket_name}/{$key}";
-                } else {
-                    $url = "https://s3.amazonaws.com/{$bucket_name}/{$key}";
-                }
+                return "https://s3.amazonaws.com/{$bucket_name}/{$key}";
             }
-            
-            return array(
-                'success' => true,
-                'url' => $url
-            );
             
         } catch (Exception $e) {
             error_log('S3 Master: Error getting file URL: ' . $e->getMessage());
-            return array(
-                'success' => false,
-                'message' => __('Error generating file URL: ', 's3-master') . $e->getMessage()
-            );
+            return false;
         }
     }
     

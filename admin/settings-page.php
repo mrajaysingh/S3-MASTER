@@ -67,9 +67,6 @@ $backup_schedule = get_option('s3_master_backup_schedule', 'hourly');
 $custom_backup_hours = get_option('s3_master_custom_backup_hours', 1);
 $github_token = get_option('s3_master_github_token', '');
 
-// Check if AWS credentials are provided
-$has_aws_credentials = !empty($aws_access_key_id) && !empty($aws_secret_access_key);
-
 // Get instances
 $aws_client = S3_Master_AWS_Client::get_instance();
 $bucket_manager = S3_Master_Bucket_Manager::get_instance();
@@ -87,7 +84,6 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
         <a href="?page=s3-master&tab=credentials" class="nav-tab <?php echo $current_tab === 'credentials' ? 'nav-tab-active' : ''; ?>">
             <?php _e('AWS Credentials', 's3-master'); ?>
         </a>
-        <?php if ($has_aws_credentials): ?>
         <a href="?page=s3-master&tab=buckets" class="nav-tab <?php echo $current_tab === 'buckets' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Bucket Management', 's3-master'); ?>
         </a>
@@ -97,13 +93,9 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
         <a href="?page=s3-master&tab=backup" class="nav-tab <?php echo $current_tab === 'backup' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Media Backup', 's3-master'); ?>
         </a>
-        <a href="?page=s3-master&tab=storage" class="nav-tab <?php echo $current_tab === 'storage' ? 'nav-tab-active' : ''; ?>">
-            <?php _e('Storage Analytics', 's3-master'); ?>
-        </a>
         <a href="?page=s3-master&tab=updates" class="nav-tab <?php echo $current_tab === 'updates' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Plugin Updates', 's3-master'); ?>
         </a>
-        <?php endif; ?>
     </nav>
     
     <div class="tab-content">
@@ -146,22 +138,14 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                     
                     <p class="submit">
                         <input type="submit" name="save_credentials" class="button-primary" value="<?php _e('Save Credentials', 's3-master'); ?>" />
-                        <?php if ($has_aws_credentials): ?>
                         <button type="button" id="test-connection" class="button"><?php _e('Test Connection', 's3-master'); ?></button>
-                        <?php endif; ?>
                     </p>
                 </form>
                 
-                <?php if ($has_aws_credentials): ?>
                 <div id="connection-status" style="margin-top: 20px;"></div>
-                <?php else: ?>
-                <div class="notice notice-info" style="margin-top: 20px;">
-                    <p><?php _e('Please enter your AWS Access Key ID and Secret Access Key above, then save the credentials to access other features.', 's3-master'); ?></p>
-                </div>
-                <?php endif; ?>
             </div>
             
-        <?php elseif ($current_tab === 'buckets' && $has_aws_credentials): ?>
+        <?php elseif ($current_tab === 'buckets'): ?>
             <div class="tab-pane active">
                 <h2><?php _e('Bucket Management', 's3-master'); ?></h2>
                 
@@ -231,7 +215,7 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                 </div>
             </div>
             
-        <?php elseif ($current_tab === 'files' && $has_aws_credentials): ?>
+        <?php elseif ($current_tab === 'files'): ?>
             <div class="tab-pane active">
                 <h2><?php _e('File Manager', 's3-master'); ?></h2>
                 
@@ -242,11 +226,10 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                 <?php else: ?>
                     <div class="s3-master-file-manager">
                         <div class="file-manager-toolbar">
-                            <input type="text" id="file-search" placeholder="<?php _e('Search files...', 's3-master'); ?>" />
-                            <button id="upload-file" class="button button-primary"><span class="dashicons dashicons-upload"></span><?php _e('Upload File', 's3-master'); ?></button>
-                            <button id="create-folder" class="button"><span class="dashicons dashicons-plus-alt"></span><?php _e('Create Folder', 's3-master'); ?></button>
-                            <button id="refresh-files" class="button"><span class="dashicons dashicons-update"></span><?php _e('Refresh', 's3-master'); ?></button>
-                            <span class="current-bucket" id="current-bucket"><?php printf(__('Bucket: %s', 's3-master'), esc_html($default_bucket)); ?></span>
+                            <button id="upload-file" class="button"><?php _e('Upload File', 's3-master'); ?></button>
+                            <button id="create-folder" class="button"><?php _e('Create Folder', 's3-master'); ?></button>
+                            <button id="refresh-files" class="button"><?php _e('Refresh', 's3-master'); ?></button>
+                            <span class="current-bucket"><?php printf(__('Bucket: %s', 's3-master'), esc_html($default_bucket)); ?></span>
                         </div>
                         
                         <div class="breadcrumb">
@@ -269,7 +252,7 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                 <?php endif; ?>
             </div>
             
-        <?php elseif ($current_tab === 'backup' && $has_aws_credentials): ?>
+        <?php elseif ($current_tab === 'backup'): ?>
             <div class="tab-pane active">
                 <h2><?php _e('Media Backup Settings', 's3-master'); ?></h2>
                 
@@ -317,28 +300,10 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                     </form>
                 </div>
                 
-                <div class="s3-master-section backup-section">
-                    <h3><span class="dashicons dashicons-analytics"></span><?php _e('Manual Backup', 's3-master'); ?></h3>
-                    <p><?php _e('Calculate and selectively backup existing media files to S3.', 's3-master'); ?></p>
-                    
-                    <div class="manual-backup-controls">
-                        <button id="calculate-media" class="button button-secondary"><span class="dashicons dashicons-chart-pie"></span><?php _e('Calculate Media Files', 's3-master'); ?></button>
-                        <button id="backup-selected-media" class="button button-primary" style="display: none;"><span class="dashicons dashicons-backup"></span><?php _e('Backup Selected Media', 's3-master'); ?></button>
-                        <button id="select-all-media" class="button" style="display: none;"><span class="dashicons dashicons-yes"></span><?php _e('Select All', 's3-master'); ?></button>
-                        <button id="deselect-all-media" class="button" style="display: none;"><span class="dashicons dashicons-no"></span><?php _e('Deselect All', 's3-master'); ?></button>
-                    </div>
-                    
-                    <div id="media-calculation-progress" style="margin-top: 20px; display: none;">
-                        <div class="calculation-spinner">
-                            <span class="dashicons dashicons-update spin"></span>
-                            <span><?php _e('Calculating media files...', 's3-master'); ?></span>
-                        </div>
-                    </div>
-                    
-                    <div id="media-categories" class="media-categories-grid" style="display: none; margin-top: 24px;">
-                        <!-- Media categories will be populated by JavaScript -->
-                    </div>
-                    
+                <div class="s3-master-section">
+                    <h3><?php _e('Manual Backup', 's3-master'); ?></h3>
+                    <p><?php _e('Backup all existing media files to S3.', 's3-master'); ?></p>
+                    <button id="backup-existing-media" class="button button-primary"><?php _e('Backup Existing Media', 's3-master'); ?></button>
                     <div id="backup-progress" style="margin-top: 20px;"></div>
                 </div>
                 
@@ -374,96 +339,7 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                 </div>
             </div>
             
-        <?php elseif ($current_tab === 'storage' && $has_aws_credentials): ?>
-            <div class="tab-pane active">
-                <h2><?php _e('Storage Analytics', 's3-master'); ?></h2>
-                
-                <div class="storage-overview">
-                    <h3><?php _e('Storage Overview', 's3-master'); ?></h3>
-                    <div class="storage-stats" id="storage-overview-stats">
-                        <div class="storage-stat">
-                            <span class="storage-stat-value" id="total-files">-</span>
-                            <span class="storage-stat-label"><?php _e('Total Files', 's3-master'); ?></span>
-                        </div>
-                        <div class="storage-stat">
-                            <span class="storage-stat-value" id="total-size">-</span>
-                            <span class="storage-stat-label"><?php _e('Total Size', 's3-master'); ?></span>
-                        </div>
-                        <div class="storage-stat">
-                            <span class="storage-stat-value" id="file-types">-</span>
-                            <span class="storage-stat-label"><?php _e('File Types', 's3-master'); ?></span>
-                        </div>
-                        <div class="storage-stat">
-                            <span class="storage-stat-value" id="avg-file-size">-</span>
-                            <span class="storage-stat-label"><?php _e('Avg File Size', 's3-master'); ?></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="storage-chart-container">
-                    <h3 class="storage-chart-title"><?php _e('Storage by File Extension', 's3-master'); ?></h3>
-                    <div class="manual-backup-controls">
-                        <button id="analyze-storage" class="button button-primary">
-                            <span class="dashicons dashicons-chart-pie"></span>
-                            <?php _e('Analyze Storage', 's3-master'); ?>
-                        </button>
-                        <button id="refresh-storage-analysis" class="button button-secondary" style="display: none;">
-                            <span class="dashicons dashicons-update"></span>
-                            <?php _e('Refresh Analysis', 's3-master'); ?>
-                        </button>
-                    </div>
-                    
-                    <div id="storage-analysis-progress" style="margin-top: 20px; display: none;">
-                        <div class="calculation-spinner">
-                            <span class="dashicons dashicons-update spin"></span>
-                            <span><?php _e('Analyzing storage usage...', 's3-master'); ?></span>
-                        </div>
-                    </div>
-                    
-                    <div id="storage-breakdown" class="storage-breakdown" style="display: none;">
-                        <!-- Storage breakdown will be populated by JavaScript -->
-                    </div>
-                </div>
-                
-                <div class="storage-chart-container">
-                    <h3 class="storage-chart-title"><?php _e('Recent Activity', 's3-master'); ?></h3>
-                    <div id="recent-activity-stats">
-                        <?php
-                        $backup_stats = $media_backup->get_backup_stats();
-                        if (!empty($backup_stats['recent_backups'])):
-                        ?>
-                        <table class="widefat">
-                            <thead>
-                                <tr>
-                                    <th><?php _e('File', 's3-master'); ?></th>
-                                    <th><?php _e('Status', 's3-master'); ?></th>
-                                    <th><?php _e('Date', 's3-master'); ?></th>
-                                    <th><?php _e('Message', 's3-master'); ?></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach (array_slice($backup_stats['recent_backups'], 0, 10) as $activity): ?>
-                                <tr>
-                                    <td><?php echo esc_html(basename($activity['file_path'])); ?></td>
-                                    <td>
-                                        <span class="backup-status-indicator backup-status-<?php echo esc_attr($activity['status']); ?>">
-                                            <?php echo esc_html(ucfirst($activity['status'])); ?>
-                                        </span>
-                                    </td>
-                                    <td><?php echo esc_html($activity['timestamp']); ?></td>
-                                    <td><?php echo esc_html($activity['message']); ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                        <?php else: ?>
-                        <p><?php _e('No recent backup activity found.', 's3-master'); ?></p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-            
-        <?php elseif ($current_tab === 'updates' && $has_aws_credentials): ?>
+        <?php elseif ($current_tab === 'updates'): ?>
             <div class="tab-pane active">
                 <h2><?php _e('Plugin Updates', 's3-master'); ?></h2>
                 
@@ -529,13 +405,6 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                     </form>
                 </div>
             </div>
-        <?php elseif (!$has_aws_credentials && $current_tab !== 'credentials'): ?>
-            <div class="tab-pane active">
-                <div class="notice notice-warning">
-                    <p><?php _e('Please configure your AWS credentials in the AWS Credentials tab to access this feature.', 's3-master'); ?></p>
-                    <p><a href="?page=s3-master&tab=credentials" class="button button-primary"><?php _e('Configure AWS Credentials', 's3-master'); ?></a></p>
-                </div>
-            </div>
         <?php endif; ?>
     </div>
 </div>
@@ -548,22 +417,6 @@ jQuery(document).ready(function($) {
             $('#custom-hours-row').show();
         } else {
             $('#custom-hours-row').hide();
-        }
-    });
-    
-    // Handle credential form submission
-    $('form').on('submit', function(e) {
-        var form = $(this);
-        if (form.find('input[name="save_credentials"]').length > 0) {
-            var accessKey = form.find('input[name="aws_access_key_id"]').val();
-            var secretKey = form.find('input[name="aws_secret_access_key"]').val();
-            
-            if (accessKey && secretKey) {
-                // Credentials are being saved, page will reload after submission
-                setTimeout(function() {
-                    location.reload();
-                }, 1000);
-            }
         }
     });
     
@@ -778,8 +631,7 @@ jQuery(document).ready(function($) {
                 html += '<td>';
                 
                 if (!file.is_folder) {
-                    html += '<button class="button view-file" data-key="' + file.key + '"><span class="dashicons dashicons-visibility"></span> \u003c?php _e('View', 's3-master'); ?\u003e</button> ';
-                    html += '<button class="button download-file" data-key="' + file.key + '">\u003c?php _e('Download', 's3-master'); ?\u003e</button> ';
+                    html += '<button class="button download-file" data-key="' + file.key + '"><?php _e('Download', 's3-master'); ?></button> ';
                 }
                 
                 html += '<button class="button delete-file" data-key="' + file.key + '"><?php _e('Delete', 's3-master'); ?></button>';
@@ -814,26 +666,6 @@ jQuery(document).ready(function($) {
         if (typeof prefix !== 'undefined') {
             loadFiles(prefix);
         }
-    });
-    
-    $(document).on('click', '.view-file', function(e) {
-        e.stopPropagation();
-        
-        var key = $(this).data('key');
-        
-        $.post(s3_master_ajax.ajax_url, {
-            action: 's3_master_ajax',
-            s3_action: 'get_file_url',
-            bucket_name: '<?php echo esc_js($default_bucket); ?>',
-            key: key,
-            nonce: s3_master_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                window.open(response.data.url, '_blank');
-            } else {
-                alert('<?php _e('Error:', 's3-master'); ?> ' + response.data);
-            }
-        });
     });
     
     $(document).on('click', '.delete-file', function(e) {
@@ -926,180 +758,6 @@ jQuery(document).ready(function($) {
             error: function() {
                 $('#upload-progress').html('<div class="notice notice-error"><p>' + s3_master_ajax.strings.error + '</p></div>');
             }
-        });
-    });
-    
-    // Storage Analytics functionality
-    $('#analyze-storage').click(function() {
-        var button = $(this);
-        var originalText = button.text();
-        
-        button.prop('disabled', true);
-        $('#storage-analysis-progress').show();
-        $('#storage-breakdown').hide();
-        
-        $.post(s3_master_ajax.ajax_url, {
-            action: 's3_master_ajax',
-            s3_action: 'analyze_storage',
-            nonce: s3_master_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                displayStorageAnalysis(response.data);
-                $('#refresh-storage-analysis').show();
-            } else {
-                $('#storage-breakdown').html('<div class="notice notice-error"><p>' + response.data + '</p></div>').show();
-            }
-        }).always(function() {
-            button.prop('disabled', false);
-            $('#storage-analysis-progress').hide();
-        });
-    });
-    
-    $('#refresh-storage-analysis').click(function() {
-        $('#analyze-storage').click();
-    });
-    
-    function displayStorageAnalysis(data) {
-        // Update overview stats
-        $('#total-files').text(data.overview.total_files);
-        $('#total-size').text(data.overview.total_size_formatted);
-        $('#file-types').text(data.overview.file_types);
-        $('#avg-file-size').text(data.overview.avg_file_size_formatted);
-        
-        // Create storage breakdown
-        var html = '';
-        if (data.extensions && data.extensions.length > 0) {
-            $.each(data.extensions, function(index, ext) {
-                var extClass = 'ext-' + ext.extension.replace('.', '');
-                html += '<div class="storage-item ' + extClass + '">';
-                html += '<div class="storage-item-icon"></div>';
-                html += '<div class="storage-item-info">';
-                html += '<p class="storage-item-label">' + ext.extension.toUpperCase() + ' Files</p>';
-                html += '<p class="storage-item-value">' + ext.size_formatted + ' (' + ext.count + ' files)</p>';
-                html += '</div>';
-                html += '</div>';
-            });
-        } else {
-            html = '<p><?php _e('No files found for analysis.', 's3-master'); ?></p>';
-        }
-        
-        $('#storage-breakdown').html(html).show();
-    }
-    
-    // Calculate Media functionality
-    $('#calculate-media').click(function() {
-        var button = $(this);
-        var originalText = button.text();
-        
-        button.prop('disabled', true);
-        $('#media-calculation-progress').show();
-        $('#media-categories').hide();
-        
-        $.post(s3_master_ajax.ajax_url, {
-            action: 's3_master_ajax',
-            s3_action: 'calculate_media',
-            nonce: s3_master_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                displayMediaCategories(response.data);
-                $('#backup-selected-media, #select-all-media, #deselect-all-media').show();
-            } else {
-                $('#media-categories').html('<div class="notice notice-error"><p>' + response.data + '</p></div>').show();
-            }
-        }).always(function() {
-            button.prop('disabled', false);
-            $('#media-calculation-progress').hide();
-        });
-    });
-    
-    function displayMediaCategories(data) {
-        var html = '';
-        var totalSize = data.total_size || 1; // Prevent division by zero
-        
-        if (data.categories && Object.keys(data.categories).length > 0) {
-            $.each(data.categories, function(category, info) {
-                var percentage = Math.round((info.size / totalSize) * 100);
-                
-                html += '<div class="media-category-card">';
-                html += '<div class="media-category-header">';
-                html += '<h4 class="media-category-title">' + category + '</h4>';
-                html += '<div class="media-category-select">';
-                html += '<input type="checkbox" class="category-checkbox" data-category="' + category + '" checked> ';
-                html += '<span><?php _e('Include', 's3-master'); ?></span>';
-                html += '</div>';
-                html += '</div>';
-                
-                html += '<div class="media-category-stats">';
-                html += '<div class="media-stat">';
-                html += '<span class="media-stat-label"><?php _e('Files', 's3-master'); ?></span>';
-                html += '<span class="media-stat-value">' + info.count + '</span>';
-                html += '</div>';
-                html += '<div class="media-stat">';
-                html += '<span class="media-stat-label"><?php _e('Size', 's3-master'); ?></span>';
-                html += '<span class="media-stat-value">' + info.size_formatted + '</span>';
-                html += '</div>';
-                html += '<div class="media-stat">';
-                html += '<span class="media-stat-label"><?php _e('Percentage', 's3-master'); ?></span>';
-                html += '<span class="media-stat-value">' + percentage + '%</span>';
-                html += '</div>';
-                html += '</div>';
-                
-                html += '<div class="media-size-bar">';
-                html += '<div class="media-size-fill" style="width: ' + percentage + '%;"></div>';
-                html += '</div>';
-                html += '</div>';
-            });
-        } else {
-            html = '<p><?php _e('No media files found for backup.', 's3-master'); ?></p>';
-        }
-        
-        $('#media-categories').html(html).show();
-    }
-    
-    // Select/Deselect all media
-    $('#select-all-media').click(function() {
-        $('.category-checkbox').prop('checked', true);
-    });
-    
-    $('#deselect-all-media').click(function() {
-        $('.category-checkbox').prop('checked', false);
-    });
-    
-    // Backup selected media
-    $('#backup-selected-media').click(function() {
-        var selectedCategories = [];
-        $('.category-checkbox:checked').each(function() {
-            selectedCategories.push($(this).data('category'));
-        });
-        
-        if (selectedCategories.length === 0) {
-            alert('<?php _e('Please select at least one category to backup.', 's3-master'); ?>');
-            return;
-        }
-        
-        if (!confirm('<?php _e('This will backup the selected media files to S3. This may take a while. Continue?', 's3-master'); ?>')) {
-            return;
-        }
-        
-        var button = $(this);
-        var originalText = button.text();
-        
-        button.prop('disabled', true).text('<?php _e('Backing up...', 's3-master'); ?>');
-        $('#backup-progress').html('<p><?php _e('Backup in progress... Please wait.', 's3-master'); ?></p>');
-        
-        $.post(s3_master_ajax.ajax_url, {
-            action: 's3_master_ajax',
-            s3_action: 'backup_selected_media',
-            categories: selectedCategories,
-            nonce: s3_master_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                $('#backup-progress').html('<div class="notice notice-success"><p>' + response.data + '</p></div>');
-            } else {
-                $('#backup-progress').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
-            }
-        }).always(function() {
-            button.prop('disabled', false).text(originalText);
         });
     });
 });
