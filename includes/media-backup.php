@@ -135,7 +135,8 @@ class S3_Master_Media_Backup {
             $this->log_backup_activity($file_path, 'success');
             
             // Update backup metadata
-            $this->update_backup_metadata($file_path, $result['key']);
+            $key = isset($result['key']) ? $result['key'] : basename($file_path);
+            $this->update_backup_metadata($file_path, $key);
         } else {
             error_log('S3 Master: Failed to backup file: ' . $file_path . ' - ' . $result['message']);
             $this->log_backup_activity($file_path, 'failed', $result['message']);

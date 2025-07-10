@@ -482,35 +482,207 @@
     font-size: 11px;
 }
 
-/* Dark Mode Compatibility */
-.wp-admin.auto-fold .s3-master-section {
-    background: #1d2327;
-    border-color: #3c434a;
-    color: #f0f0f1;
+/* Media Backup Section Improvements */
+.backup-section {
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
 }
 
-.wp-admin.auto-fold .file-manager-toolbar {
-    background: #2c3338;
-    border-color: #3c434a;
+.backup-section h3 {
+    color: #1a1a1a;
+    margin-top: 0;
 }
 
-.wp-admin.auto-fold .breadcrumb {
-    background: #23282d;
-    border-color: #3c434a;
-    color: #f0f0f1;
+.manual-backup-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
 }
 
-.wp-admin.auto-fold #file-upload-area {
-    background: #2c3338;
-    border-color: #3c434a;
-    color: #f0f0f1;
+.manual-backup-controls .button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-.wp-admin.auto-fold #file-search {
-    background: #2c3338;
-    border-color: #3c434a;
-    color: #f0f0f1;
+.calculation-spinner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 14px;
 }
+
+.media-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.media-category-card {
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.media-category-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: #3b82f6;
+}
+
+.media-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.media-category-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.media-category-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.media-category-stats {
+    margin-bottom: 16px;
+}
+
+.media-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.media-stat-label {
+    color: #6b7280;
+}
+
+.media-stat-value {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.media-size-bar {
+    height: 8px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.media-size-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    transition: width 0.3s ease;
+}
+
+/* Storage Analytics Styles */
+.storage-analytics {
+    margin-top: 24px;
+}
+
+.storage-chart-container {
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.storage-chart-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 20px 0;
+}
+
+.storage-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.storage-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.storage-item-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.storage-item-info {
+    flex: 1;
+}
+
+.storage-item-label {
+    font-size: 13px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.storage-item-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 2px 0 0 0;
+}
+
+/* Extension-specific colors */
+.ext-jpg, .ext-jpeg { border-color: #ef4444; }
+.ext-jpg .storage-item-icon, .ext-jpeg .storage-item-icon { background: #ef4444; }
+
+.ext-png { border-color: #3b82f6; }
+.ext-png .storage-item-icon { background: #3b82f6; }
+
+.ext-gif { border-color: #f59e0b; }
+.ext-gif .storage-item-icon { background: #f59e0b; }
+
+.ext-pdf { border-color: #dc2626; }
+.ext-pdf .storage-item-icon { background: #dc2626; }
+
+.ext-mp4, .ext-avi, .ext-mov { border-color: #8b5cf6; }
+.ext-mp4 .storage-item-icon, .ext-avi .storage-item-icon, .ext-mov .storage-item-icon { background: #8b5cf6; }
+
+.ext-mp3, .ext-wav { border-color: #10b981; }
+.ext-mp3 .storage-item-icon, .ext-wav .storage-item-icon { background: #10b981; }
+
+.ext-zip, .ext-rar { border-color: #6b7280; }
+.ext-zip .storage-item-icon, .ext-rar .storage-item-icon { background: #6b7280; }
+
+.ext-other { border-color: #94a3b8; }
+.ext-other .storage-item-icon { background: #94a3b8; }
 
 /* Bucket Management Enhancements */
 .buckets-grid {

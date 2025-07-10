@@ -186,6 +186,18 @@ class S3_Master {
             case 'backup_media':
                 $this->ajax_backup_media();
                 break;
+            case 'analyze_storage':
+                $this->ajax_analyze_storage();
+                break;
+            case 'calculate_media':
+                $this->ajax_calculate_media();
+                break;
+            case 'backup_selected_media':
+                $this->ajax_backup_selected_media();
+                break;
+            case 'get_file_url':
+                $this->ajax_get_file_url();
+                break;
             default:
                 wp_send_json_error(__('Invalid action', 's3-master'));
         }
@@ -299,6 +311,180 @@ class S3_Master {
     }
     
     /**
+     * Analyze storage usage
+     */
+    private function ajax_analyze_storage() {
+        $uploads_path = wp_upload_dir()['basedir'];
+        $media_files = $this->get_media_files($uploads_path);
+
+        $overview = array(
+            'total_files' => count($media_files),
+            'total_size' => 0,
+            'file_types' => count(array_unique(array_map('pathinfo', $media_files, array_fill(0, count($media_files), PATHINFO_EXTENSION)))),
+        );
+
+        $extensions_data = array();
+        foreach ($media_files as $file_path) {
+            $file_info = pathinfo($file_path);
+            $extension = isset($file_info['extension']) ? $file_info['extension'] : 'unknown';
+            $file_size = filesize($file_path);
+
+            $overview['total_size'] += $file_size;
+
+            if (!isset($extensions_data[$extension])) {
+                $extensions_data[$extension] = ['count' => 0, 'size' => 0];
+            }
+
+            $extensions_data[$extension]['count']++;
+            $extensions_data[$extension]['size'] += $file_size;
+        }
+
+        $extensions_result = array();
+        foreach ($extensions_data as $ext => $data) {
+            $extensions_result[] = array(
+                'extension' => $ext,
+                'size' => $data['size'],
+                'size_formatted' => size_format($data['size']),
+                'count' => $data['count'],
+            );
+        }
+
+        wp_send_json_success(array(
+            'overview' => array_merge($overview, array('total_size_formatted' => size_format($overview['total_size']), 'avg_file_size_formatted' => size_format($overview['total_size'] / $overview['total_files']))),
+            'extensions' => $extensions_result,
+        ));
+    }
+
+    /**
+     * Calculate media files by type and extension
+     */
+    private function ajax_calculate_media() {
+        $uploads_path = wp_upload_dir()['basedir'];
+        $media_files = $this->get_media_files($uploads_path);
+
+        if (empty($media_files)) {
+            wp_send_json_error(__('No media files found for backup.', 's3-master'));
+        }
+
+        $media_data = [];
+        foreach ($media_files as $file_path) {
+            $file_size = filesize($file_path);
+            $file_info = pathinfo($file_path);
+            $extension = isset($file_info['extension']) ? strtolower($file_info['extension']) : 'unknown';
+
+            if (!isset($media_data[$extension])) {
+                $media_data[$extension] = ['count' => 0, 'size' => 0];
+            }
+            $media_data[$extension]['count']++;
+            $media_data[$extension]['size'] += $file_size;
+        }
+
+        $categories = array();
+        $total_size = 0;
+        
+        foreach ($media_data as $extension => $data) {
+            $categories[strtoupper($extension)] = array(
+                'count' => $data['count'],
+                'size' => $data['size'],
+                'size_formatted' => size_format($data['size']),
+            );
+            $total_size += $data['size'];
+        }
+
+        wp_send_json_success(array('categories' => $categories, 'total_size' => $total_size));
+    }
+
+    /**
+     * Backup selected media categories
+     */
+    private function ajax_backup_selected_media() {
+        if (!isset($_POST['categories']) || !is_array($_POST['categories'])) {
+            wp_send_json_error(__('No categories selected.', 's3-master'));
+        }
+
+        $selected_categories = array_map('sanitize_text_field', $_POST['categories']);
+        $media_backup = S3_Master_Media_Backup::get_instance();
+        $bucket_manager = S3_Master_Bucket_Manager::get_instance();
+        $file_manager = S3_Master_File_Manager::get_instance();
+        $default_bucket = $bucket_manager->get_default_bucket();
+
+        if (empty($default_bucket)) {
+            wp_send_json_error(__('No default bucket configured.', 's3-master'));
+        }
+
+        $uploads_path = wp_upload_dir()['basedir'];
+        $media_files = $this->get_media_files($uploads_path);
+        $successful_uploads = 0;
+        $failed_uploads = 0;
+
+        foreach ($media_files as $file_path) {
+            $file_info = pathinfo($file_path);
+            $extension = isset($file_info['extension']) ? strtoupper($file_info['extension']) : 'UNKNOWN';
+
+            if (in_array($extension, $selected_categories)) {
+                $relative_path = str_replace($uploads_path, '', $file_path);
+                $relative_path = ltrim($relative_path, '/\\');
+
+                $file_data = array(
+                    'tmp_name' => $file_path,
+                    'name' => basename($file_path),
+                    'error' => UPLOAD_ERR_OK
+                );
+
+                $result = $file_manager->upload_file($file_data, $default_bucket, 'wp-content/uploads/' . dirname($relative_path));
+
+                if ($result && $result['success']) {
+                    $successful_uploads++;
+                } else {
+                    $failed_uploads++;
+                }
+            }
+        }
+
+        $message = sprintf(__('Backup completed: %d files uploaded successfully', 's3-master'), $successful_uploads);
+        if ($failed_uploads > 0) {
+            $message .= sprintf(__(', %d failed', 's3-master'), $failed_uploads);
+        }
+
+        wp_send_json_success($message);
+    }
+
+    /**
+     * Get media files from uploads directory
+     */
+    private function get_media_files($directory) {
+        $files = array();
+        
+        if (!is_dir($directory)) {
+            return $files;
+        }
+        
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+        
+        $media_extensions = array(
+            'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg',
+            'mp4', 'avi', 'mov', 'wmv', 'flv', 'webm',
+            'mp3', 'wav', 'ogg', 'wma', 'flac',
+            'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+            'zip', 'rar', '7z', 'tar', 'gz'
+        );
+        
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $file_extension = strtolower(pathinfo($file->getPathname(), PATHINFO_EXTENSION));
+                if (in_array($file_extension, $media_extensions)) {
+                    $files[] = $file->getPathname();
+                }
+            }
+        }
+        
+        return $files;
+    }
+
+    /**
      * Delete file from S3
      */
     private function ajax_delete_file() {
@@ -328,6 +514,27 @@ class S3_Master {
         
         if ($result['success']) {
             wp_send_json_success(__('Folder created successfully!', 's3-master'));
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
+    
+    /**
+     * Get presigned URL for file viewing
+     */
+    private function ajax_get_file_url() {
+        $bucket_name = sanitize_text_field(isset($_POST['bucket_name']) ? $_POST['bucket_name'] : '');
+        $key = sanitize_text_field(isset($_POST['key']) ? $_POST['key'] : '');
+        
+        if (empty($bucket_name) || empty($key)) {
+            wp_send_json_error(__('Bucket name and file key are required', 's3-master'));
+        }
+        
+        $file_manager = S3_Master_File_Manager::get_instance();
+        $result = $file_manager->get_file_url($bucket_name, $key);
+        
+        if ($result['success']) {
+            wp_send_json_success(array('url' => $result['url']));
         } else {
             wp_send_json_error($result['message']);
         }
