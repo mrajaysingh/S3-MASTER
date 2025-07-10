@@ -1,0 +1,66 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Composer
+composer.lock
+composer.phar
+
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.sublime-*
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+debug.log
+
+# OS generated files
+.DS_Store?
+ehthumbs.db
+Icon?
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Plugin specific
+plugin-update-checker/
+
+# Build files
+/build/
+/dist/
+
+# Development
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Testing
+/tests/coverage/
+phpunit.xml
+.phpunit.result.cache
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Backup files
+*.backup
+*.bak
+*.orig

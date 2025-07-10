@@ -1,0 +1,478 @@
+/**
+ * S3 Master Admin Styles
+ * 
+ * Custom styles for the admin interface
+ */
+
+/* General Styles */
+.s3-master-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.s3-master-section h3 {
+    margin-top: 0;
+    color: #23282d;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Connection Status */
+#connection-indicator {
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+#connection-indicator.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+#connection-indicator.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+#connection-indicator.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* File Manager */
+.s3-master-file-manager {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.file-manager-toolbar {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    background: #f9f9f9;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.file-manager-toolbar .button {
+    margin-right: 5px;
+}
+
+.current-bucket {
+    margin-left: auto;
+    font-weight: 600;
+    color: #555;
+}
+
+#file-search {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    width: 200px;
+}
+
+.breadcrumb {
+    padding: 10px 15px;
+    background: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+#files-list {
+    min-height: 300px;
+}
+
+#files-list table {
+    margin: 0;
+}
+
+.file-row:hover,
+.folder-row:hover {
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+.folder-row td:first-child {
+    font-weight: 600;
+    color: #0073aa;
+}
+
+.file-row .dashicons,
+.folder-row .dashicons {
+    margin-right: 5px;
+}
+
+/* File Upload */
+#file-upload-area {
+    padding: 20px;
+    border: 2px dashed #ddd;
+    border-radius: 4px;
+    background: #fafafa;
+    text-align: center;
+    margin: 15px 0;
+    transition: all 0.3s ease;
+}
+
+#file-upload-area.dragover {
+    border-color: #0073aa;
+    background: #e5f3ff;
+}
+
+#file-upload-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.upload-progress-container {
+    margin-top: 15px;
+}
+
+.file-upload-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.file-upload-progress:last-child {
+    border-bottom: none;
+}
+
+.filename {
+    flex: 0 0 200px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #0073aa;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.status {
+    flex: 0 0 100px;
+    font-size: 12px;
+    text-align: right;
+}
+
+/* Context Menu */
+.context-menu {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    list-style: none;
+    margin: 0;
+    padding: 5px 0;
+    min-width: 120px;
+    z-index: 9999;
+}
+
+.context-menu li {
+    margin: 0;
+    padding: 0;
+}
+
+.context-menu a {
+    display: block;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+}
+
+.context-menu a:hover {
+    background: #0073aa;
+    color: #fff;
+}
+
+/* Batch Actions */
+#batch-actions {
+    margin-left: auto;
+    padding: 0 10px;
+}
+
+#batch-actions .button {
+    background: #dc3232;
+    border-color: #dc3232;
+    color: #fff;
+}
+
+#batch-actions .button:hover {
+    background: #c02525;
+    border-color: #c02525;
+}
+
+/* Bucket List */
+#buckets-list table {
+    margin-top: 15px;
+}
+
+#buckets-list .delete-bucket {
+    background: #dc3232;
+    border-color: #dc3232;
+    color: #fff;
+    font-size: 12px;
+    padding: 4px 8px;
+    height: auto;
+}
+
+#buckets-list .delete-bucket:hover {
+    background: #c02525;
+    border-color: #c02525;
+}
+
+/* Backup Stats */
+#backup-stats table {
+    margin-top: 15px;
+}
+
+#backup-stats td:first-child {
+    font-weight: 600;
+    width: 200px;
+}
+
+#backup-progress {
+    min-height: 50px;
+}
+
+/* Update Info */
+#update-info table {
+    margin-top: 15px;
+}
+
+#update-info td:first-child {
+    font-weight: 600;
+    width: 200px;
+}
+
+/* Tooltips */
+.s3-tooltip {
+    background: #333;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.s3-tooltip:after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border: 5px solid transparent;
+    border-top-color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .file-manager-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .current-bucket {
+        margin-left: 0;
+        margin-top: 10px;
+        text-align: center;
+    }
+    
+    #file-search {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    #file-upload-form {
+        flex-direction: column;
+    }
+    
+    .file-upload-progress {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+    }
+    
+    .filename,
+    .status {
+        flex: none;
+        text-align: left;
+    }
+}
+
+/* WordPress Admin Compatibility */
+.wrap .s3-master-section {
+    max-width: none;
+}
+
+.s3-master-section .form-table th {
+    padding-left: 0;
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -10px 0 0 -10px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 2px solid #0073aa;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error States */
+.error-message {
+    color: #dc3232;
+    font-weight: 500;
+}
+
+.success-message {
+    color: #46b450;
+    font-weight: 500;
+}
+
+/* File Type Icons */
+.file-row .dashicons-media-default {
+    color: #82878c;
+}
+
+.file-row[data-type*="image"] .dashicons-media-default {
+    color: #0073aa;
+}
+
+.file-row[data-type*="video"] .dashicons-media-default {
+    color: #ca4a1f;
+}
+
+.file-row[data-type*="audio"] .dashicons-media-default {
+    color: #f56e28;
+}
+
+.file-row[data-type*="pdf"] .dashicons-media-default {
+    color: #dc3232;
+}
+
+.file-row[data-type*="zip"] .dashicons-media-default,
+.file-row[data-type*="rar"] .dashicons-media-default {
+    color: #8f6238;
+}
+
+/* Custom Checkboxes */
+.file-checkbox {
+    margin-right: 8px;
+}
+
+/* Keyboard Shortcuts Help */
+.keyboard-shortcuts {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    z-index: 9999;
+    display: none;
+}
+
+.keyboard-shortcuts.show {
+    display: block;
+}
+
+.keyboard-shortcuts h4 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+}
+
+.keyboard-shortcuts ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.keyboard-shortcuts li {
+    margin: 2px 0;
+}
+
+.keyboard-shortcuts kbd {
+    background: #444;
+    border: 1px solid #666;
+    border-radius: 2px;
+    padding: 1px 4px;
+    font-size: 11px;
+}
+
+/* Dark Mode Compatibility */
+.wp-admin.auto-fold .s3-master-section {
+    background: #1d2327;
+    border-color: #3c434a;
+    color: #f0f0f1;
+}
+
+.wp-admin.auto-fold .file-manager-toolbar {
+    background: #2c3338;
+    border-color: #3c434a;
+}
+
+.wp-admin.auto-fold .breadcrumb {
+    background: #23282d;
+    border-color: #3c434a;
+    color: #f0f0f1;
+}
+
+.wp-admin.auto-fold #file-upload-area {
+    background: #2c3338;
+    border-color: #3c434a;
+    color: #f0f0f1;
+}
+
+.wp-admin.auto-fold #file-search {
+    background: #2c3338;
+    border-color: #3c434a;
+    color: #f0f0f1;
+}
