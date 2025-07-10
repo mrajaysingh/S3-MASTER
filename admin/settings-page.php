@@ -179,11 +179,19 @@ $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'creden
                     </form>
                 </div>
                 
-                <div class="s3-master-section">
-                    <h3><?php _e('Existing Buckets', 's3-master'); ?></h3>
-                    <button id="refresh-buckets" class="button"><?php _e('Refresh List', 's3-master'); ?></button>
-                    <div id="buckets-list" style="margin-top: 20px;">
-                        <p><?php _e('Click "Refresh List" to load your buckets.', 's3-master'); ?></p>
+                <div class="s3-master-section s3-buckets-section">
+                    <div class="section-header">
+                        <h3><span class="dashicons dashicons-portfolio"></span><?php _e('Existing Buckets', 's3-master'); ?></h3>
+                        <button id="refresh-buckets" class="button button-secondary"><span class="dashicons dashicons-update"></span><?php _e('Refresh List', 's3-master'); ?></button>
+                    </div>
+                    <div id="bucket-storage-overview" class="storage-overview">
+                        <!-- Storage overview will be populated by JavaScript -->
+                    </div>
+                    <div id="buckets-list" class="buckets-grid">
+                        <div class="loading-spinner">
+                            <span class="dashicons dashicons-update spin"></span>
+                            <p><?php _e('Click "Refresh List" to load your buckets.', 's3-master'); ?></p>
+                        </div>
                     </div>
                 </div>
                 
