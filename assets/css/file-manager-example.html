@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager CSS Module Example</title>
+    <link rel="stylesheet" href="file-manager.css">
+    <link rel="stylesheet" href="file-manager-utils.css">
+</head>
+<body>
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+        <h1>File Manager CSS Module Example</h1>
+        
+        <!-- File Manager Component -->
+        <div class="file-manager">
+            <!-- File Manager Header -->
+            <div class="file-manager-header">
+                <h2 class="file-manager-title">My Files</h2>
+                <div class="file-manager-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-upload"></i>
+                        Upload
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-folder-plus"></i>
+                        New Folder
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Manager Controls -->
+            <div class="file-manager-controls">
+                <input type="search" class="file-manager-search" placeholder="Search files...">
+                <div class="file-manager-view-toggle">
+                    <button class="view-toggle-btn active" data-view="grid">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-toggle-btn" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+                <div class="sort-controls">
+                    <button class="sort-button active" data-sort="name">
+                        Name
+                        <i class="fas fa-sort-alpha-down sort-icon"></i>
+                    </button>
+                    <button class="sort-button" data-sort="size">
+                        Size
+                        <i class="fas fa-sort-amount-down sort-icon"></i>
+                    </button>
+                    <button class="sort-button" data-sort="date">
+                        Date
+                        <i class="fas fa-sort-numeric-down sort-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Breadcrumb Navigation -->
+            <div class="file-breadcrumb">
+                <a href="#" class="breadcrumb-item">Home</a>
+                <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                <a href="#" class="breadcrumb-item">Documents</a>
+                <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                <span class="breadcrumb-item current">Projects</span>
+            </div>
+
+            <!-- File Selection Info (hidden by default) -->
+            <div class="file-selection-info" style="display: none;">
+                <span>3 files selected</span>
+                <div class="file-selection-actions">
+                    <button class="btn btn-sm btn-secondary">Download</button>
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                </div>
+            </div>
+
+            <!-- File Manager Body -->
+            <div class="file-manager-body">
+                <!-- File Grid Layout -->
+                <div class="file-grid">
+                    <!-- Folder Item -->
+                    <div class="file-item">
+                        <div class="file-item-content">
+                            <i class="fas fa-folder file-icon folder"></i>
+                            <div>
+                                <p class="file-item-name">Images</p>
+                                <span class="file-item-size">12 items</span>
+                            </div>
+                        </div>
+                        <div class="file-item-actions">
+                            <button class="file-action-btn view" title="Open">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="file-action-btn edit" title="Rename">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="file-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Document File -->
+                    <div class="file-item">
+                        <div class="file-item-content">
+                            <i class="fas fa-file-word file-icon document"></i>
+                            <div>
+                                <p class="file-item-name">Project Report.docx</p>
+                                <span class="file-item-size">2.4 MB</span>
+                                <span class="file-item-date">2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="file-item-actions">
+                            <button class="file-action-btn view" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="file-action-btn edit" title="Rename">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="file-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Image File -->
+                    <div class="file-item selected">
+                        <div class="file-item-content">
+                            <i class="fas fa-file-image file-icon image"></i>
+                            <div>
+                                <p class="file-item-name">screenshot.png</p>
+                                <span class="file-item-size">1.2 MB</span>
+                                <span class="file-item-date">1 day ago</span>
+                            </div>
+                        </div>
+                        <div class="file-item-actions">
+                            <button class="file-action-btn view" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="file-action-btn edit" title="Rename">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="file-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video File -->
+                    <div class="file-item">
+                        <div class="file-item-content">
+                            <i class="fas fa-file-video file-icon video"></i>
+                            <div>
+                                <p class="file-item-name">presentation.mp4</p>
+                                <span class="file-item-size">45.2 MB</span>
+                                <span class="file-item-date">3 days ago</span>
+                            </div>
+                        </div>
+                        <div class="file-item-actions">
+                            <button class="file-action-btn view" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="file-action-btn edit" title="Rename">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="file-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Archive File -->
+                    <div class="file-item">
+                        <div class="file-item-content">
+                            <i class="fas fa-file-archive file-icon archive"></i>
+                            <div>
+                                <p class="file-item-name">backup.zip</p>
+                                <span class="file-item-size">12.8 MB</span>
+                                <span class="file-item-date">1 week ago</span>
+                            </div>
+                        </div>
+                        <div class="file-item-actions">
+                            <button class="file-action-btn view" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="file-action-btn edit" title="Rename">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="file-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Code File -->
+                    <div class="file-item">
+                        <div class="file-item-content">
+                            <i class="fas fa-file-code file-icon code"></i>
+                            <div>
+                                <p class="file-item-name">script.js</p>
+                                <span class="file-item-size">856 KB</span>
+                                <span class="file-item-date">2 days ago</span>
+                            </div>
+                        </div>
+                        <div class="file-item-actions">
+                            <button class="file-action-btn view" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="file-action-btn edit" title="Rename">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="file-action-btn delete" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading File Item -->
+                    <div class="file-item loading">
+                        <div class="file-item-content">
+                            <i class="fas fa-file file-icon document"></i>
+                            <div>
+                                <p class="file-item-name">uploading.pdf</p>
+                                <span class="file-item-size">Processing...</span>
+                            </div>
+                        </div>
+                        <div class="loading-overlay">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+
+                    <!-- Disabled File Item -->
+                    <div class="file-item disabled">
+                        <div class="file-item-content">
+                            <i class="fas fa-file-pdf file-icon document"></i>
+                            <div>
+                                <p class="file-item-name">locked.pdf</p>
+                                <span class="file-item-size">Access denied</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Progress Section -->
+        <div class="upload-progress">
+            <h3>Upload Progress</h3>
+            <div class="upload-progress-item">
+                <i class="fas fa-file-image"></i>
+                <span>vacation.jpg</span>
+                <div class="upload-progress-bar">
+                    <div class="upload-progress-bar-fill" style="width: 75%"></div>
+                </div>
+                <span>75%</span>
+            </div>
+            <div class="upload-progress-item">
+                <i class="fas fa-file-video"></i>
+                <span>video.mp4</span>
+                <div class="upload-progress-bar">
+                    <div class="upload-progress-bar-fill success" style="width: 100%"></div>
+                </div>
+                <span>Complete</span>
+            </div>
+            <div class="upload-progress-item">
+                <i class="fas fa-file-archive"></i>
+                <span>archive.zip</span>
+                <div class="upload-progress-bar">
+                    <div class="upload-progress-bar-fill error" style="width: 30%"></div>
+                </div>
+                <span>Error</span>
+            </div>
+        </div>
+
+        <!-- Utility Classes Demo -->
+        <div style="margin-top: 2rem;">
+            <h3>Utility Classes Demo</h3>
+            
+            <!-- Loading Spinners -->
+            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                <div class="spinner-sm"></div>
+                <div class="spinner"></div>
+                <div class="spinner-lg"></div>
+                <span>Loading spinners (small, medium, large)</span>
+            </div>
+
+            <!-- Buttons -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <button class="btn btn-primary">Primary</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-danger">Danger</button>
+                <button class="btn btn-sm btn-primary">Small</button>
+                <button class="btn btn-lg btn-primary">Large</button>
+            </div>
+
+            <!-- File Status Badges -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <span class="file-status-badge uploading">Uploading</span>
+                <span class="file-status-badge processing">Processing</span>
+                <span class="file-status-badge ready">Ready</span>
+                <span class="file-status-badge error">Error</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-bar" style="margin-bottom: 1rem;">
+                <div class="progress-bar-fill" style="width: 60%"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state">
+                <i class="fas fa-folder-open empty-state-icon"></i>
+                <h3 class="empty-state-title">No files found</h3>
+                <p class="empty-state-description">Upload your first file to get started</p>
+                <button class="btn btn-primary">Upload Files</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Example -->
+    <div class="modal" id="exampleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Delete File</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this file? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu Example -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item">
+            <i class="fas fa-eye"></i>
+            <span>Preview</span>
+        </div>
+        <div class="context-menu-item">
+            <i class="fas fa-download"></i>
+            <span>Download</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item">
+            <i class="fas fa-edit"></i>
+            <span>Rename</span>
+        </div>
+        <div class="context-menu-item">
+            <i class="fas fa-copy"></i>
+            <span>Copy</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item danger">
+            <i class="fas fa-trash"></i>
+            <span>Delete</span>
+        </div>
+    </div>
+
+    <!-- Notification Toast Example -->
+    <div class="notification-toast success" id="notification">
+        <div class="notification-toast-content">
+            <i class="fas fa-check-circle notification-toast-icon"></i>
+            <div class="notification-toast-text">
+                <h4>Upload Successful</h4>
+                <p>Your file has been uploaded successfully.</p>
+            </div>
+            <button class="notification-toast-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Example JavaScript for interactivity
+        function closeModal() {
+            document.getElementById('exampleModal').classList.remove('open');
+        }
+
+        // Show modal example
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for demonstration
+            document.querySelectorAll('.file-action-btn.delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('exampleModal').classList.add('open');
+                });
+            });
+
+            // Context menu example
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    const contextMenu = document.getElementById('contextMenu');
+                    contextMenu.classList.add('show');
+                    contextMenu.style.left = e.clientX + 'px';
+                    contextMenu.style.top = e.clientY + 'px';
+                });
+            });
+
+            // Close context menu when clicking elsewhere
+            document.addEventListener('click', function() {
+                document.getElementById('contextMenu').classList.remove('show');
+            });
+
+            // Notification example
+            setTimeout(() => {
+                document.getElementById('notification').classList.add('show');
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

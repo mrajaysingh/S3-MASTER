@@ -118,10 +118,22 @@ jQuery(document).ready(function($) {
     
     // Enhanced Bucket Loading with Storage Info
     function loadBucketsWithStats() {
+        // Check if credentials are set
+        if (!s3_master_ajax.has_credentials) {
+            $('#default-bucket-select').html('<option value="">' + s3_master_ajax.strings.no_bucket + '</option>');
+            $('#buckets-list').html('<div class="notice notice-info"><p>Please enter and verify your AWS credentials first.</p></div>');
+            return;
+        }
+
         var button = $('#refresh-buckets');
         var originalHtml = button.html();
         
         button.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span>Loading...');
+        
+        // First, update the Default Bucket dropdown to show loading state
+        var $bucketSelect = $('#default-bucket-select');
+        $bucketSelect.prop('disabled', true);
+        $('.bucket-select-status').removeClass('error success').addClass('loading').text('Loading buckets...');
         
         $.post(s3_master_ajax.ajax_url, {
             action: 's3_master_ajax',
@@ -129,13 +141,55 @@ jQuery(document).ready(function($) {
             nonce: s3_master_ajax.nonce
         }, function(response) {
             if (response.success) {
-                displayBuckets(response.data.buckets || response.data, response.data.overview);
+                var buckets = response.data.buckets || response.data;
+                // Display buckets in the Existing Buckets section
+                displayBuckets(buckets, response.data.overview);
+                
+                // Update Default Bucket select
+                updateDefaultBucketSelect(buckets);
             } else {
                 $('#buckets-list').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
+                $('#default-bucket-select').html('<option value="">' + s3_master_ajax.strings.no_buckets + '</option>');
+                $('.bucket-select-status').removeClass('loading').addClass('error').text('Failed to load buckets. Please try again.');
             }
+        }).fail(function() {
+            $('#buckets-list').html('<div class="notice notice-error"><p>Failed to load buckets. Please try again.</p></div>');
+            $('#default-bucket-select').html('<option value="">' + s3_master_ajax.strings.no_buckets + '</option>');
+            $('.bucket-select-status').removeClass('loading').addClass('error').text('Failed to load buckets. Please try again.');
         }).always(function() {
             button.prop('disabled', false).html(originalHtml);
         });
+    }
+
+    // Function to update Default Bucket select
+    function updateDefaultBucketSelect(buckets) {
+        var $bucketSelect = $('#default-bucket-select');
+        var currentBucket = $bucketSelect.data('current') || '';
+        
+        if (buckets && buckets.length > 0) {
+            var options = '';
+            buckets.forEach(function(bucket) {
+                options += '<option value="' + bucket.Name + '"' + (bucket.Name === currentBucket ? ' selected' : '') + '>' + bucket.Name + '</option>';
+            });
+            $bucketSelect.html(options);
+            $('.bucket-select-status').removeClass('loading error').addClass('success').text(buckets.length + ' buckets found');
+        } else {
+            $bucketSelect.html('<option value="">' + s3_master_ajax.strings.no_buckets + '</option>');
+            $('.bucket-select-status').removeClass('loading').addClass('error').text('No buckets found. Please create a bucket first.');
+        }
+        
+        // Ensure the select is enabled
+        $bucketSelect.prop('disabled', false);
+    }
+
+    // Refresh buckets when the refresh button is clicked
+    $('#refresh-buckets').click(function() {
+        loadBucketsWithStats();
+    });
+
+    // Initial load of buckets
+    if (s3_master_ajax.has_credentials) {
+        loadBucketsWithStats();
     }
     
     function displayBuckets(buckets, overview) {
@@ -331,11 +385,6 @@ jQuery(document).ready(function($) {
     
     // Event Handlers
     
-    // Refresh buckets
-    $('#refresh-buckets').click(function() {
-        loadBucketsWithStats();
-    });
-    
     // Set default bucket
     $(document).on('click', '.set-default-bucket', function() {
         var bucketName = $(this).data('bucket');
@@ -408,7 +457,19 @@ jQuery(document).ready(function($) {
         }, function(response) {
             if (response.success) {
                 updateConnectionStatus('success', response.data);
-                $('#connection-status').html('<div class="notice notice-success"><p>' + response.data + '</p></div>');
+                // Show dismissable success message
+                $('#connection-status').html(
+                    '<div class="notice notice-success is-dismissible">' +
+                    '<p><strong>Connection Successful!</strong></p>' +
+                    '<p>Great! Your AWS credentials are working.</p>' +
+                    '<button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button>' +
+                    '</div>'
+                );
+                
+                // Make the dismiss button work
+                $('#connection-status .notice-dismiss').on('click', function() {
+                    $(this).parent().fadeOut();
+                });
             } else {
                 updateConnectionStatus('error', response.data);
                 $('#connection-status').html('<div class="notice notice-error"><p>' + response.data + '</p></div>');
@@ -514,3 +575,171 @@ jQuery(document).ready(function($) {
         window.s3MasterInit();
     }
 });
+
+// Document ready handler
+$(document).ready(function() {
+    // If we're on the buckets tab, load the buckets automatically
+    if ($('#buckets-list').length > 0) {
+        updateExistingBuckets();
+    }
+});
+
+// Function to update existing buckets list
+function updateExistingBuckets() {
+    const bucketsListDiv = $('#buckets-list');
+    const loadingIndicator = bucketsListDiv.find('.loading-indicator');
+    
+    loadingIndicator.html('<p>Loading buckets...</p>');
+    
+    $.ajax({
+        url: s3_master_ajax.ajax_url,
+        type: 'POST',
+        data: {
+            action: 'get_buckets_list',
+            nonce: $('#s3_master_nonce').val()
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                let bucketsList = '<ul class="buckets-list">';
+                response.data.forEach(function(bucket) {
+                    bucketsList += `
+                        <li class="bucket-item">
+                            <span class="bucket-name">${bucket}</span>
+                        </li>`;
+                });
+                bucketsList += '</ul>';
+                bucketsListDiv.html(bucketsList);
+            } else {
+                bucketsListDiv.html('<p class="error-message">Failed to load buckets. ' + (response.data || 'Please try again.') + '</p>');
+            }
+        },
+        error: function() {
+            bucketsListDiv.html('<p class="error-message">Failed to load buckets. Please try again.</p>');
+        }
+    });
+}
+
+// Refresh buckets button handler
+$('#refresh-buckets').on('click', function() {
+    updateExistingBuckets();
+});
+
+// Function to validate bucket name
+function isValidBucketName(bucketName) {
+    // AWS bucket naming rules
+    const rules = {
+        minLength: 3,
+        maxLength: 63,
+        validChars: /^[a-z0-9][a-z0-9.-]*[a-z0-9]$/,
+        noConsecutivePeriods: /\.\./,
+        noIPAddress: /^\d+\.\d+\.\d+\.\d+$/
+    };
+
+    if (!bucketName || 
+        bucketName.length < rules.minLength || 
+        bucketName.length > rules.maxLength ||
+        !rules.validChars.test(bucketName) ||
+        rules.noConsecutivePeriods.test(bucketName) ||
+        rules.noIPAddress.test(bucketName)) {
+        return false;
+    }
+    return true;
+}
+
+// Handle default bucket verification and setting
+$(document).ready(function() {
+    $('#verify-bucket-btn').on('click', function(e) {
+        e.preventDefault();
+        console.log('Verify button clicked'); // Debug log
+        
+        const bucketInput = $('#default-bucket-input');
+        const bucketName = bucketInput.val().trim();
+        const statusDiv = $('.bucket-select-status');
+        const verifyBtn = $(this);
+
+        // Reset status
+        statusDiv.removeClass('error success').empty();
+        bucketInput.removeClass('error success');
+
+        console.log('Validating bucket name:', bucketName); // Debug log
+
+        // Basic validation first
+        if (!isValidBucketName(bucketName)) {
+            bucketInput.addClass('error');
+            statusDiv.addClass('error').html('Invalid bucket name format. Bucket names must be 3-63 characters, lowercase letters, numbers, dots, or hyphens, and must start and end with a letter or number.');
+            return;
+        }
+
+        // Disable input and button during verification
+        bucketInput.prop('disabled', true);
+        verifyBtn.prop('disabled', true).text('Verifying...');
+
+        console.log('Making AJAX request'); // Debug log
+
+        // Make AJAX call to verify bucket exists and set as default
+        $.ajax({
+            url: s3_master_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'verify_and_set_default_bucket',
+                bucket_name: bucketName,
+                nonce: $('#s3_master_nonce').val()
+            },
+            success: function(response) {
+                console.log('AJAX response:', response); // Debug log
+                if (response.success) {
+                    bucketInput.addClass('success');
+                    statusDiv.addClass('success').html(response.data);
+                    // Update the existing buckets list
+                    updateExistingBuckets();
+                } else {
+                    bucketInput.addClass('error');
+                    statusDiv.addClass('error').html(response.data || 'Failed to verify bucket. Please check if the bucket exists in your AWS account.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('AJAX error:', error); // Debug log
+                bucketInput.addClass('error');
+                statusDiv.addClass('error').html('Failed to verify bucket. Please try again.');
+            },
+            complete: function() {
+                bucketInput.prop('disabled', false);
+                verifyBtn.prop('disabled', false).text('Verify & Set Default');
+            }
+        });
+    });
+
+    // Prevent form submission when pressing enter in the bucket input
+    $('#default-bucket-input').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#verify-bucket-btn').click();
+        }
+    });
+});
+
+// Add styles for validation feedback
+$('<style>')
+    .text(`
+        #default-bucket-input.error { border-color: #dc3232; }
+        #default-bucket-input.success { border-color: #46b450; }
+        .bucket-select-status { margin-top: 5px; }
+        .bucket-select-status.error { color: #dc3232; }
+        .bucket-select-status.success { color: #46b450; }
+        .buckets-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .bucket-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .bucket-item:last-child {
+            border-bottom: none;
+        }
+        .error-message {
+            color: #dc3232;
+        }
+    `)
+    .appendTo('head');

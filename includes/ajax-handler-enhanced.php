@@ -69,6 +69,14 @@ class S3_Master_Enhanced_Ajax_Handler {
             case 'set_default_bucket':
                 $this->set_default_bucket();
                 break;
+
+            case 'verify_bucket':
+                $this->verify_bucket();
+                break;
+                
+            case 'verify_and_set_default_bucket':
+                $this->verify_and_set_default_bucket();
+                break;
                 
             default:
                 wp_send_json_error('Invalid action');
@@ -221,10 +229,73 @@ class S3_Master_Enhanced_Ajax_Handler {
             wp_send_json_error($result['message']);
         }
     }
-    
+
     /**
-     * Calculate usage percentage (mock calculation)
+     * Verify bucket access and existence
      */
+    private function verify_bucket() {
+        $bucket_name = sanitize_text_field($_POST['bucket_name']);
+        
+        if (empty($bucket_name)) {
+            wp_send_json_error('Bucket name is required');
+        }
+        
+        $bucket_manager = S3_Master_Bucket_Manager::get_instance();
+        
+        // First check if the bucket exists
+        if (!$bucket_manager->bucket_exists($bucket_name)) {
+            wp_send_json_error('Bucket does not exist or is not accessible');
+            return;
+        }
+        
+        // Try to get bucket location to verify permissions
+        $location_result = $bucket_manager->get_bucket_location($bucket_name);
+        
+        if (!$location_result['success']) {
+            wp_send_json_error($location_result['message']);
+            return;
+        }
+        
+        // Get bucket stats to verify read permissions
+        $stats_result = $bucket_manager->get_bucket_stats($bucket_name);
+        
+        if (!$stats_result['success']) {
+            wp_send_json_error('Cannot access bucket statistics. Please check your permissions.');
+            return;
+        }
+        
+        wp_send_json_success(array(
+            'message' => 'Bucket verified successfully',
+            'location' => $location_result['location'],
+            'stats' => $stats_result['stats']
+        ));
+    }
+
+    /**
+     * Verify and Set Default Bucket
+     */
+    private function verify_and_set_default_bucket() {
+        $bucket_name = sanitize_text_field($_POST['bucket_name']);
+        if (empty($bucket_name)) {
+            wp_send_json_error('Bucket name is required');
+        }
+
+        $bucket_manager = S3_Master_Bucket_Manager::get_instance();
+
+        // Verify bucket
+        if (!$bucket_manager->bucket_exists($bucket_name)) {
+            wp_send_json_error('Bucket does not exist or is not accessible');
+        }
+
+        // Set as default
+        $result = $bucket_manager->set_default_bucket($bucket_name);
+        if ($result['success']) {
+            wp_send_json_success('Bucket verified and set as default successfully!');
+        } else {
+            wp_send_json_error($result['message']);
+        }
+    }
+    
     private function calculate_usage_percentage($size_bytes) {
         // This is a mock calculation - in reality you'd compare against account limits
         $mock_limit = 5368709120; // 5GB mock limit

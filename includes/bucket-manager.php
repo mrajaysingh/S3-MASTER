@@ -370,28 +370,48 @@ class S3_Master_Bucket_Manager {
      * Validate bucket name
      */
     private function is_valid_bucket_name($bucket_name) {
-        // Check length
+        // Check length (3-63 characters)
         if (strlen($bucket_name) < 3 || strlen($bucket_name) > 63) {
             return false;
         }
         
-        // Check characters
-        if (!preg_match('/^[a-z0-9.-]+$/', $bucket_name)) {
-            return false;
-        }
-        
-        // Check for consecutive periods
-        if (strpos($bucket_name, '..') !== false) {
-            return false;
-        }
-        
-        // Check start and end characters
+        // Must start and end with a letter or number
         if (!preg_match('/^[a-z0-9]/', $bucket_name) || !preg_match('/[a-z0-9]$/', $bucket_name)) {
             return false;
         }
         
-        // Check for IP address format
-        if (preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $bucket_name)) {
+        // Can contain only lowercase letters, numbers, dots (.), and hyphens (-)
+        if (!preg_match('/^[a-z0-9.-]+$/', $bucket_name)) {
+            return false;
+        }
+        
+        // Cannot contain consecutive periods
+        if (strpos($bucket_name, '..') !== false) {
+            return false;
+        }
+        
+        // Cannot be formatted as an IP address
+        if (preg_match('/^\d+\.\d+\.\d+\.\d+$/', $bucket_name)) {
+            return false;
+        }
+        
+        // Cannot start with 'xn--' (reserved for punycode)
+        if (strpos($bucket_name, 'xn--') === 0) {
+            return false;
+        }
+        
+        // Cannot end with '-s3alias' (reserved for S3 aliases)
+        if (substr($bucket_name, -8) === '-s3alias') {
+            return false;
+        }
+        
+        // Cannot contain underscores
+        if (strpos($bucket_name, '_') !== false) {
+            return false;
+        }
+        
+        // Cannot have adjacent dots and dashes
+        if (preg_match('/[\.-]{2,}/', $bucket_name)) {
             return false;
         }
         

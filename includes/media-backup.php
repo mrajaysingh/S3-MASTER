@@ -423,24 +423,60 @@ class S3_Master_Media_Backup {
         $backup_metadata = get_option('s3_master_backup_metadata', array());
         $backup_log = get_option('s3_master_backup_log', array());
         
-        $total_files = count($backup_metadata);
-        $total_size = 0;
+        // Get total media files count
+        $upload_dir = wp_upload_dir();
+        $uploads_path = $upload_dir['basedir'];
+        $all_media_files = $this->get_media_files($uploads_path);
+        $total_media_files = count($all_media_files);
         
+        // Get uploaded files count
+        $uploaded_files = count($backup_metadata);
+        $total_uploaded_size = 0;
+        
+        // Calculate total size of uploaded files
         foreach ($backup_metadata as $file_data) {
-            $total_size += $file_data['file_size'];
+            $total_uploaded_size += $file_data['file_size'];
         }
+        
+        // Calculate remaining files
+        $remaining_files = max(0, $total_media_files - $uploaded_files);
+        
+        // Calculate total size of all media files
+        $total_media_size = 0;
+        foreach ($all_media_files as $file_path) {
+            if (file_exists($file_path)) {
+                $total_media_size += filesize($file_path);
+            }
+        }
+        
+        // Calculate remaining size
+        $remaining_size = max(0, $total_media_size - $total_uploaded_size);
+        
+        // Calculate backup progress percentage
+        $backup_progress = $total_media_files > 0 ? round(($uploaded_files / $total_media_files) * 100, 2) : 0;
         
         $recent_backups = array_slice($backup_log, 0, 10);
         $last_backup = get_option('s3_master_last_backup', 0);
         
         return array(
-            'total_files' => $total_files,
-            'total_size' => $total_size,
-            'total_size_formatted' => $this->format_bytes($total_size),
+            'total_media_files' => $total_media_files,
+            'total_media_size' => $total_media_size,
+            'total_media_size_formatted' => $this->format_bytes($total_media_size),
+            'uploaded_files' => $uploaded_files,
+            'uploaded_size' => $total_uploaded_size,
+            'uploaded_size_formatted' => $this->format_bytes($total_uploaded_size),
+            'remaining_files' => $remaining_files,
+            'remaining_size' => $remaining_size,
+            'remaining_size_formatted' => $this->format_bytes($remaining_size),
+            'backup_progress' => $backup_progress,
             'last_backup' => $last_backup ? date('Y-m-d H:i:s', $last_backup) : __('Never', 's3-master'),
             'recent_backups' => $recent_backups,
             'auto_backup_enabled' => get_option('s3_master_auto_backup', false),
-            'backup_schedule' => get_option('s3_master_backup_schedule', 'hourly')
+            'backup_schedule' => get_option('s3_master_backup_schedule', 'hourly'),
+            // Legacy fields for backward compatibility
+            'total_files' => $uploaded_files,
+            'total_size' => $total_uploaded_size,
+            'total_size_formatted' => $this->format_bytes($total_uploaded_size)
         );
     }
     

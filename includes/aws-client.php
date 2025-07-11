@@ -101,37 +101,46 @@ class S3_Master_AWS_Client {
      * Test AWS connection
      */
     public function test_connection() {
-        $this->load_credentials();
-        
-        if (empty($this->credentials['access_key_id']) || empty($this->credentials['secret_access_key'])) {
-            return array(
-                'success' => false,
-                'message' => __('AWS credentials are not configured.', 's3-master')
-            );
-        }
-        
-        $s3_client = $this->get_s3_client();
-        
-        if (!$s3_client) {
-            return array(
-                'success' => false,
-                'message' => __('Failed to create S3 client.', 's3-master')
-            );
-        }
-        
         try {
+            $this->load_credentials();
+            
+            if (empty($this->credentials['access_key_id']) || empty($this->credentials['secret_access_key'])) {
+                return array(
+                    'success' => false,
+                    'message' => __('AWS credentials are not configured.', 's3-master')
+                );
+            }
+            
+            $s3_client = $this->get_s3_client();
+            
+            if (!$s3_client) {
+                return array(
+                    'success' => false,
+                    'message' => __('Failed to create S3 client. Please check your credentials and try again.', 's3-master')
+                );
+            }
+            
+            // Try to list buckets to verify connection
             if (method_exists($s3_client, 'listBuckets')) {
-                $result = $s3_client->listBuckets();
+                // AWS SDK client
+                $s3_client->listBuckets();
                 return array(
                     'success' => true,
-                    'message' => __('Connection successful!', 's3-master')
+                    'message' => __('Connection successful! Your AWS credentials are working.', 's3-master')
                 );
             } else {
-                // Manual client test
+                // Manual client
                 $result = $s3_client->list_buckets();
+                if ($result['success']) {
+                    return array(
+                        'success' => true,
+                        'message' => __('Connection successful! Your AWS credentials are working.', 's3-master')
+                    );
+                }
                 return $result;
             }
         } catch (Exception $e) {
+            error_log('S3 Master: Connection test failed - ' . $e->getMessage());
             return array(
                 'success' => false,
                 'message' => sprintf(__('Connection failed: %s', 's3-master'), $e->getMessage())
@@ -252,6 +261,7 @@ class S3_Master_Manual_Client {
         }
         
         $status_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
         
         if ($status_code === 200 || $status_code === 201) {
             return array(
@@ -259,9 +269,33 @@ class S3_Master_Manual_Client {
                 'message' => __('Bucket created successfully', 's3-master')
             );
         } else {
+            // Parse XML error response
+            $xml = simplexml_load_string($body);
+            $error_message = '';
+            
+            if ($xml && isset($xml->Error->Code)) {
+                $error_code = (string)$xml->Error->Code;
+                $error_message = (string)$xml->Error->Message;
+                
+                switch ($error_code) {
+                    case 'BucketAlreadyExists':
+                        return array(
+                            'success' => false,
+                            'message' => __('This bucket name is already taken. Please choose a different name.', 's3-master')
+                        );
+                    case 'InvalidBucketName':
+                        return array(
+                            'success' => false,
+                            'message' => __('Invalid bucket name. Bucket names must be between 3-63 characters and can only contain lowercase letters, numbers, dots, and hyphens.', 's3-master')
+                        );
+                    default:
+                        $error_message = sprintf(__('Error: %s - %s', 's3-master'), $error_code, $error_message);
+                }
+            }
+            
             return array(
                 'success' => false,
-                'message' => sprintf(__('Failed to create bucket. Status code: %d', 's3-master'), $status_code)
+                'message' => $error_message ?: sprintf(__('Failed to create bucket. Status code: %d', 's3-master'), $status_code)
             );
         }
     }
